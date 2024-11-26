@@ -40,17 +40,17 @@
 #include "read_write_node.hpp"
 
 // Control table address for X series (except XL-320)
-#define ADDR_OPERATING_MODE 11
-#define ADDR_TORQUE_ENABLE 64
-#define ADDR_GOAL_POSITION 116
-#define ADDR_PRESENT_POSITION 132
+#define ADDR_OPERATING_MODE 8
+#define ADDR_TORQUE_ENABLE 24
+#define ADDR_GOAL_POSITION 30
+#define ADDR_PRESENT_POSITION 36
 
 // Protocol version
-#define PROTOCOL_VERSION 2.0  // Default Protocol version of DYNAMIXEL X series.
+#define PROTOCOL_VERSION 1.0  // Default Protocol version of DYNAMIXEL X series.
 
 // Default setting
-#define BAUDRATE 57600  // Default Baudrate of DYNAMIXEL X series
-#define DEVICE_NAME "/dev/ttyUSB0"  // [Linux]: "/dev/ttyUSB*", [Windows]: "COM*"
+#define BAUDRATE 1000000  // Default Baudrate of DYNAMIXEL X series
+#define DEVICE_NAME "/dev/ttyACM0"  // [Linux]: "/dev/ttyUSB*", [Windows]: "COM*"
 
 dynamixel::PortHandler * portHandler;
 dynamixel::PacketHandler * packetHandler;
@@ -58,6 +58,8 @@ dynamixel::PacketHandler * packetHandler;
 uint8_t dxl_error = 0;
 uint32_t goal_position = 0;
 int dxl_comm_result = COMM_TX_FAIL;
+int dxl_comm_result1 = COMM_TX_FAIL;
+
 
 ReadWriteNode::ReadWriteNode()
 : Node("read_write_node")
@@ -93,6 +95,16 @@ ReadWriteNode::ReadWriteNode()
         goal_position,
         &dxl_error
       );
+
+            
+      // dxl_comm_result1 =
+      // packetHandler->write4ByteTxRx(
+      //   portHandler,
+      //   (uint8_t) (msg->id)+1,
+      //   ADDR_GOAL_POSITION,
+      //   goal_position,
+      //   &dxl_error
+      // );
 
       if (dxl_comm_result != COMM_SUCCESS) {
         RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
@@ -138,6 +150,17 @@ ReadWriteNode::~ReadWriteNode()
 
 void setupDynamixel(uint8_t dxl_id)
 {
+
+
+    // Turn LED ON
+  dxl_comm_result = packetHandler->write1ByteTxRx(
+    portHandler,
+    dxl_id,
+    25,
+    1,
+    &dxl_error
+  );
+
   // Use Position Control Mode
   dxl_comm_result = packetHandler->write1ByteTxRx(
     portHandler,
@@ -211,3 +234,4 @@ int main(int argc, char * argv[])
 
   return 0;
 }
+
