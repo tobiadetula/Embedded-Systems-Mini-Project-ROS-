@@ -30,6 +30,7 @@
 #include <cstdio>
 #include <memory>
 #include <string>
+#include <cmath>
 
 #include "dynamixel_sdk/dynamixel_sdk.h"
 #include "dynamixel_sdk_custom_interfaces/msg/set_position.hpp"
@@ -83,8 +84,8 @@ ReadWriteNode::ReadWriteNode()
 
       // Position Value of X series is 4 byte data.
       // For AX & MX(1.0) use 2 byte data(uint16_t) for the Position Value.
-      uint32_t goal_position = (unsigned int)msg->position;  // Convert int32 -> uint32
-
+      uint32_t goal_position_angle = (unsigned int)msg->position;  // Convert int32 -> uint32
+      uint32_t goal_position = (uint32_t)std::round(goal_position_angle * 1023 / 300);  // Convert angle to position
       // Write Goal Position (length : 4 bytes)
       // When writing 2 byte data to AX / MX(1.0), use write2ByteTxRx() instead.
       dxl_comm_result =
