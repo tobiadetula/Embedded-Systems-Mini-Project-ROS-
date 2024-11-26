@@ -1,64 +1,65 @@
+#ifndef INVERSE_KINEMATICS_HPP
+#define INVERSE_KINEMATICS_HPP
 
-#ifndef INVERSE_KINEMATICS_H
-#define INVERSE_KINEMATICS_H
+#include <vector>
 
-#include <stdlib.h>
-#include <math.h>
+class InverseKinematics {
+public:
+    InverseKinematics(double r1, double r2, double r3);
+    ~InverseKinematics();
 
-typedef struct {
+    // Method to calculate joint angles from end-effector position
+    std::vector<double> calculateJointAngles(const std::vector<double>& endEffectorPosition);
+
+private:
+    // Add private methods and member variables as needed
     double linkLength1;
     double linkLength2;
     double linkLength3;
     double D;
-} InverseKinematics;
 
-// Function prototypes
-InverseKinematics* createInverseKinematics(double r1, double r2, double r3);
-void destroyInverseKinematics(InverseKinematics* ik);
-void normalizeDimensions(InverseKinematics* ik);
-void calculateJointAngles(InverseKinematics* ik, const double* endEffectorPosition, double* jointAngles);
-double calculateTheta1(double x, double y);
-double calculateTheta2(double x, double y);
+    // Helper methods for calculations
+    double calculateTheta1(double x, double y);
+    double calculateTheta2(double x, double y);
 
-// Function implementations
-InverseKinematics* createInverseKinematics(double r1, double r2, double r3) {
-    InverseKinematics* ik = (InverseKinematics*)malloc(sizeof(InverseKinematics));
-    ik->linkLength1 = r1;
-    ik->linkLength2 = r2;
-    ik->linkLength3 = r3;
-    normalizeDimensions(ik);
-    return ik;
+    // Method to normalize dimensions
+    void normalizeDimensions();
+};
+
+InverseKinematics::InverseKinematics(double r1, double r2, double r3) 
+    : linkLength1(r1), linkLength2(r2), linkLength3(r3) {
+    normalizeDimensions();
 }
 
-void destroyInverseKinematics(InverseKinematics* ik) {
-    free(ik);
+InverseKinematics::~InverseKinematics() {}
+
+void InverseKinematics::normalizeDimensions() {
+    D = (linkLength1 + linkLength2 + linkLength3) / 3.0;
+    linkLength1 /= D;
+    linkLength2 /= D;
+    linkLength3 /= D;
 }
 
-void normalizeDimensions(InverseKinematics* ik) {
-    ik->D = (ik->linkLength1 + ik->linkLength2 + ik->linkLength3) / 3.0;
-    ik->linkLength1 /= ik->D;
-    ik->linkLength2 /= ik->D;
-    ik->linkLength3 /= ik->D;
-}
-
-void calculateJointAngles(InverseKinematics* ik, const double* endEffectorPosition, double* jointAngles) {
+std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<double>& endEffectorPosition) {
     // Normalize end-effector position
-    double x = endEffectorPosition[0] / ik->D;
-    double y = endEffectorPosition[1] / ik->D;
+    double x = endEffectorPosition[0] / D;
+    double y = endEffectorPosition[1] / D;
 
     // Calculate joint angles
-    jointAngles[0] = calculateTheta1(x, y);
-    jointAngles[1] = calculateTheta2(x, y);
+    double theta1 = calculateTheta1(x, y);
+    double theta2 = calculateTheta2(x, y);
+
+    return {theta1, theta2};
 }
 
-double calculateTheta1(double x, double y) {
+double InverseKinematics::calculateTheta1(double x, double y) {
     // Implement the calculation for theta1
     return 0.0; // Placeholder
 }
 
-double calculateTheta2(double x, double y) {
+double InverseKinematics::calculateTheta2(double x, double y) {
     // Implement the calculation for theta2
     return 0.0; // Placeholder
-}
+};
 
-#endif // INVERSE_KINEMATICS_H
+#endif // INVERSE_KINEMATICS_HPP
