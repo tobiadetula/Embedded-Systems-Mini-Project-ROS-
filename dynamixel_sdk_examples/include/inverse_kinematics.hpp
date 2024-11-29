@@ -47,12 +47,15 @@ void InverseKinematics::normalizeDimensions() {
 }
 
 std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<double>& endEffectorPosition) {
-    double x = endEffectorPosition[0] / D;
-    double y = endEffectorPosition[1] / D;
+    // double x = endEffectorPosition[0] / D;
+    // double y = endEffectorPosition[1] / D;
+
+    double x = endEffectorPosition[0];
+    double y = endEffectorPosition[1];
 
     // Set initial guesses dynamically or adjust as needed
-    double initial_guess_theta1_deg = 210.0; // Adjust if necessary
-    double initial_guess_theta2_deg = 210.0;
+    double initial_guess_theta1_deg = 90.0; // Adjust if necessary
+    double initial_guess_theta2_deg = 90.0;
 
     try {
         // Calculate joint angles using Newton-Raphson
@@ -69,8 +72,8 @@ std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<do
         }
 
         // Avoid aggressive clamping unless necessary
-        theta1 = std::clamp(theta1, 100.0, angleThreshold);
-        theta2 = std::clamp(theta2, 100.0, angleThreshold);
+        theta1 = 300 - theta1; // Adjust for motor orientation
+        theta2 = theta2 + 90; // Adjust for motor orientation
 
         return {theta1, theta2};
     } catch (const std::exception& e) {
@@ -108,14 +111,6 @@ double InverseKinematics::solveNewtonRaphson(std::function<double(double)> func,
     for (int i = 0; i < max_iter; i++) {
         double fx = func(x);
         double dfx = (func(x + tolerance) - func(x - tolerance)) / (2 * tolerance);
-
-        // Debugging Newton-Raphson iteration
-        std::cout << "Iteration " << i << ": x = " << x << ", fx = " << fx << ", dfx = " << dfx << std::endl;
-
-        if (std::fabs(dfx) < tolerance) {
-            throw std::runtime_error("Derivative too small, potential division by zero.");
-        }
-
         double x_next = x - fx / dfx;
         if (fabs(x_next - x) < tolerance) {
             return x_next;
