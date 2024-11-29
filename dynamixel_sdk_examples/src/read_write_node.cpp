@@ -80,7 +80,7 @@ double y_initial = 0.0; // Example initial y-coordinate
 // Variables for angles to feed into the two motors
 double theta1 = 0.0; // Angle for the first motor
 double theta2 = 0.0; // Angle for the second motor
-double anglethreshold = 300.0; 
+double anglethreshold = 300.0;
 
 int dxl_comm_result = COMM_TX_FAIL;
 int dxl_comm_result1 = COMM_TX_FAIL;
@@ -109,8 +109,8 @@ ReadWriteNode::ReadWriteNode()
             // For AX & MX(1.0) use 2 byte data(uint16_t) for the Position Value.
             // uint32_t goal_position_angle = (unsigned int)msg->position;                      // Convert int32 -> uint32
             // uint32_t goal_position = (uint32_t)std::round(goal_position_angle * 1023 / 300); // Convert angle to position
-                                                                                             // Write Goal Position (length : 4 bytes)
-                                                                                             // When writing 2 byte data to AX / MX(1.0), use write2ByteTxRx() instead.
+            // Write Goal Position (length : 4 bytes)
+            // When writing 2 byte data to AX / MX(1.0), use write2ByteTxRx() instead.
             x_initial = (double)msg->id;
             y_initial = (double)msg->position;
             InverseKinematics ik(r1, r2, r3, anglethreshold);
@@ -137,6 +137,14 @@ ReadWriteNode::ReadWriteNode()
                     ADDR_GOAL_POSITION,
                     theta1,
                     &dxl_error);
+
+            // Disable Torque of DYNAMIXEL
+            // packetHandler->write1ByteTxRx(
+            //     portHandler,
+            //     BROADCAST_ID,
+            //     ADDR_TORQUE_ENABLE,
+            //     0,
+            //     &dxl_error);
 
             dxl_comm_result1 =
                 packetHandler->write4ByteTxRx(
@@ -169,7 +177,7 @@ ReadWriteNode::ReadWriteNode()
     // When reading 2 byte data from AX / MX(1.0), use read2ByteTxRx() instead.
     dxl_comm_result = packetHandler->read4ByteTxRx(
         portHandler,
-        (uint8_t)request->id,
+        DEVICE_ID_1,
         ADDR_PRESENT_POSITION,
         reinterpret_cast<uint32_t *>(&present_position),
         &dxl_error);

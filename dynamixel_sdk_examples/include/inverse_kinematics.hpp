@@ -50,22 +50,33 @@ std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<do
     double x = endEffectorPosition[0] / D;
     double y = endEffectorPosition[1] / D;
 
-    // Set initial guesses in degrees (e.g., 45 degrees as a safe starting point)
-    double initial_guess_theta1_deg = 240.0;
-    double initial_guess_theta2_deg = 220.0;
+    // Set initial guesses dynamically or adjust as needed
+    double initial_guess_theta1_deg = 210.0; // Adjust if necessary
+    double initial_guess_theta2_deg = 210.0;
 
-    double theta1 = calculateTheta1(x, y, initial_guess_theta1_deg);
-    double theta2 = calculateTheta2(x, y, initial_guess_theta2_deg);
+    try {
+        // Calculate joint angles using Newton-Raphson
+        double theta1 = calculateTheta1(x, y, initial_guess_theta1_deg);
+        double theta2 = calculateTheta2(x, y, initial_guess_theta2_deg);
 
-    // Convert radians to degrees
-    theta1 = theta1 * (180.0 / M_PI);
-    theta2 = theta2 * (180.0 / M_PI);
+        // Convert radians to degrees
+        theta1 = theta1 * (180.0 / M_PI);
+        theta2 = theta2 * (180.0 / M_PI);
 
-    // Clamp the angles within the range [0, angleThreshold] degrees
-    theta1 = std::clamp(theta1, 210.0, angleThreshold);
-    theta2 = std::clamp(theta2, 210.0, angleThreshold);
+        // Validate results before clamping
+        if (std::isnan(theta1) || std::isnan(theta2)) {
+            throw std::runtime_error("Theta calculation resulted in NaN.");
+        }
 
-    return {theta1, theta2};
+        // Avoid aggressive clamping unless necessary
+        theta1 = std::clamp(theta1, 100.0, angleThreshold);
+        theta2 = std::clamp(theta2, 100.0, angleThreshold);
+
+        return {theta1, theta2};
+    } catch (const std::exception& e) {
+        std::cerr << "Error calculating joint angles: " << e.what() << std::endl;
+        return {300.0, 300.0}; // Return default or error value
+    }
 }
 
 double InverseKinematics::calculateTheta1(double x, double y, double initial_guess_deg) {
@@ -97,6 +108,14 @@ double InverseKinematics::solveNewtonRaphson(std::function<double(double)> func,
     for (int i = 0; i < max_iter; i++) {
         double fx = func(x);
         double dfx = (func(x + tolerance) - func(x - tolerance)) / (2 * tolerance);
+
+        // Debugging Newton-Raphson iteration
+        std::cout << "Iteration " << i << ": x = " << x << ", fx = " << fx << ", dfx = " << dfx << std::endl;
+
+        if (std::fabs(dfx) < tolerance) {
+            throw std::runtime_error("Derivative too small, potential division by zero.");
+        }
+
         double x_next = x - fx / dfx;
         if (fabs(x_next - x) < tolerance) {
             return x_next;
