@@ -62,8 +62,8 @@ std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<do
     theta2 = theta2 * (180.0 / M_PI);
 
     // Clamp the angles within the range [0, angleThreshold] degrees
-    theta1 = std::clamp(theta1, 0.0, angleThreshold);
-    theta2 = std::clamp(theta2, 0.0, angleThreshold);
+    theta1 = std::clamp(theta1, 210.0, angleThreshold);
+    theta2 = std::clamp(theta2, 210.0, angleThreshold);
 
     return {theta1, theta2};
 }
