@@ -7,6 +7,8 @@
 #include <functional>
 #include <stdexcept>
 
+
+
 class InverseKinematics {
 public:
     InverseKinematics(double r1, double r2, double r3);
@@ -16,15 +18,14 @@ public:
     std::vector<double> calculateJointAngles(const std::vector<double>& endEffectorPosition);
 
 private:
-    // Add private methods and member variables as needed
     double linkLength1;
     double linkLength2;
     double linkLength3;
     double D;
 
     // Helper methods for calculations
-    double calculateTheta1(double x, double y);
-    double calculateTheta2(double x, double y);
+    double calculateTheta1(double x, double y, double initial_guess_deg);
+    double calculateTheta2(double x, double y, double initial_guess_deg);
     double solveNewtonRaphson(std::function<double(double)> func, double initial_guess, double tolerance = 1e-6, int max_iter = 1000);
 
     // Method to normalize dimensions
@@ -45,13 +46,16 @@ void InverseKinematics::normalizeDimensions() {
     linkLength3 /= D;
 }
 
-std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<double> &endEffectorPosition)
-{
+std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<double>& endEffectorPosition) {
     double x = endEffectorPosition[0] / D;
     double y = endEffectorPosition[1] / D;
 
-    double theta1 = calculateTheta1(x, y);
-    double theta2 = calculateTheta2(x, y);
+    // Set initial guesses in degrees (e.g., 45 degrees as a safe starting point)
+    double initial_guess_theta1_deg = 90.0;
+    double initial_guess_theta2_deg = 90.0;
+
+    double theta1 = calculateTheta1(x, y, initial_guess_theta1_deg);
+    double theta2 = calculateTheta2(x, y, initial_guess_theta2_deg);
 
     // Convert radians to degrees
     theta1 = theta1 * (180.0 / M_PI);
@@ -61,8 +65,7 @@ std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<do
 }
 
 double InverseKinematics::calculateTheta1(double x, double y, double initial_guess_deg) {
-    // double initial_guess = initial_guess_deg * (M_PI / 180.0); // Convert degrees to radians
-    double initial_guess = initial_guess_deg;
+    double initial_guess = initial_guess_deg * (M_PI / 180.0); // Convert degrees to radians
 
     auto equation1 = [x, y, this](double theta) {
         return pow(x - linkLength1 * cos(theta) + linkLength3, 2) +
@@ -74,8 +77,7 @@ double InverseKinematics::calculateTheta1(double x, double y, double initial_gue
 }
 
 double InverseKinematics::calculateTheta2(double x, double y, double initial_guess_deg) {
-    // double initial_guess = initial_guess_deg * (M_PI / 180.0); // Convert degrees to radians
-    double initial_guess = initial_guess_deg; // Convert degrees to radians
+    double initial_guess = initial_guess_deg * (M_PI / 180.0); // Convert degrees to radians
 
     auto equation2 = [x, y, this](double theta) {
         return pow(x - linkLength1 * cos(theta) - linkLength3, 2) +

@@ -39,6 +39,7 @@
 #include "rcutils/cmdline_parser.h"
 
 #include "read_write_node.hpp"
+#include "inverse_kinematics.hpp"
 
 // Control table address for X series (except XL-320)
 #define ADDR_OPERATING_MODE 8
@@ -46,24 +47,45 @@
 #define ADDR_GOAL_POSITION 30
 #define ADDR_PRESENT_POSITION 36
 
+// DEVICE ADDRESS
+#define DEVICE_ID_1 1
+#define DEVICE_ID_2 2
+
 // Protocol version
-#define PROTOCOL_VERSION 1.0  // Default Protocol version of DYNAMIXEL X series.
+#define PROTOCOL_VERSION 1.0 // Default Protocol version of DYNAMIXEL X series.
 
 // Default setting
-#define BAUDRATE 1000000  // Default Baudrate of DYNAMIXEL X series
-#define DEVICE_NAME "/dev/ttyACM0"  // [Linux]: "/dev/ttyUSB*", [Windows]: "COM*"
+#define BAUDRATE 1000000           // Default Baudrate of DYNAMIXEL X series
+#define DEVICE_NAME "/dev/ttyACM0" // [Linux]: "/dev/ttyUSB*", [Windows]: "COM*"
 
-dynamixel::PortHandler * portHandler;
-dynamixel::PacketHandler * packetHandler;
+dynamixel::PortHandler *portHandler;
+dynamixel::PacketHandler *packetHandler;
 
 uint8_t dxl_error = 0;
 uint32_t goal_position = 0;
+
+// Distance between the motor and first joint
+double r1 = 7.5; // Initial value for r1
+
+// Distance between the end-effector and first joint
+double r2 = 6.5; // Initial value for r2
+
+// Distance between the first and second motors
+double r3 = 12.5 / 2; // Initial value for r3
+
+// Initial x and y coordinates of the motor
+double x_initial = 0.0; // Example initial x-coordinate
+double y_initial = 0.0; // Example initial y-coordinate
+
+// Variables for angles to feed into the two motors
+double theta1 = 0.0; // Angle for the first motor
+double theta2 = 0.0; // Angle for the second motor
+
 int dxl_comm_result = COMM_TX_FAIL;
 int dxl_comm_result1 = COMM_TX_FAIL;
 
-
 ReadWriteNode::ReadWriteNode()
-: Node("read_write_node")
+    : Node("read_write_node")
 {
   RCLCPP_INFO(this->get_logger(), "Run read write node");
 
@@ -72,75 +94,93 @@ ReadWriteNode::ReadWriteNode()
   this->get_parameter("qos_depth", qos_depth);
 
   const auto QOS_RKL10V =
-    rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
+      rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
 
   set_position_subscriber_ =
-    this->create_subscription<SetPosition>(
-    "set_position",
-    QOS_RKL10V,
-    [this](const SetPosition::SharedPtr msg) -> void
-    {
-      uint8_t dxl_error = 0;
+      this->create_subscription<SetPosition>(
+          "set_position",
+          QOS_RKL10V,
+          [this](const SetPosition::SharedPtr msg) -> void
+          {
+            uint8_t dxl_error = 0;
 
-      // Position Value of X series is 4 byte data.
-      // For AX & MX(1.0) use 2 byte data(uint16_t) for the Position Value.
-      uint32_t goal_position_angle = (unsigned int)msg->position;  // Convert int32 -> uint32
-      uint32_t goal_position = (uint32_t)std::round(goal_position_angle * 1023 / 300);  // Convert angle to position
-      // Write Goal Position (length : 4 bytes)
-      // When writing 2 byte data to AX / MX(1.0), use write2ByteTxRx() instead.
-      dxl_comm_result =
-      packetHandler->write4ByteTxRx(
-        portHandler,
-        (uint8_t) msg->id,
-        ADDR_GOAL_POSITION,
-        goal_position,
-        &dxl_error
-      );
+            // Position Value of X series is 4 byte data.
+            // For AX & MX(1.0) use 2 byte data(uint16_t) for the Position Value.
+            // uint32_t goal_position_angle = (unsigned int)msg->position;                      // Convert int32 -> uint32
+            // uint32_t goal_position = (uint32_t)std::round(goal_position_angle * 1023 / 300); // Convert angle to position
+                                                                                             // Write Goal Position (length : 4 bytes)
+                                                                                             // When writing 2 byte data to AX / MX(1.0), use write2ByteTxRx() instead.
+            x_initial = (double)msg->id;
+            y_initial = (double)msg->position;
+            InverseKinematics ik(r1, r2, r3);
+            std::vector<double> endEffectorPosition = {x_initial, y_initial};
+            try
+            {
+              std::vector<double> jointAngles = ik.calculateJointAngles(endEffectorPosition);
+              theta1 = jointAngles[0];
+              theta2 = jointAngles[1];
+              std::cout << "Theta1: " << theta1 << ", Theta2: " << theta2 << std::endl;
+            }
+            catch (const std::exception &e)
+            {
+              std::cerr << e.what() << std::endl;
+            }
 
-            
-      // dxl_comm_result1 =
-      // packetHandler->write4ByteTxRx(
-      //   portHandler,
-      //   (uint8_t) (msg->id)+1,
-      //   ADDR_GOAL_POSITION,
-      //   goal_position,
-      //   &dxl_error
-      // );
+            theta1 = (uint32_t)std::round(theta1 * 1023 / 300);
+            theta2 = (uint32_t)std::round(theta2 * 1023 / 300);
+            std::cout << "Converted Theta1: " << theta1 << ", Converted Theta2: " << theta2 << std::endl;
+            dxl_comm_result =
+                packetHandler->write4ByteTxRx(
+                    portHandler,
+                    DEVICE_ID_1,
+                    ADDR_GOAL_POSITION,
+                    theta1,
+                    &dxl_error);
 
-      if (dxl_comm_result != COMM_SUCCESS) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
-      } else if (dxl_error != 0) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
-      } else {
-        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id, msg->position);
-      }
-    }
-    );
+            dxl_comm_result1 =
+                packetHandler->write4ByteTxRx(
+                    portHandler,
+                    DEVICE_ID_2,
+                    ADDR_GOAL_POSITION,
+                    theta2,
+                    &dxl_error);
+
+            if (dxl_comm_result != COMM_SUCCESS)
+            {
+              RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
+            }
+            else if (dxl_error != 0)
+            {
+              RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
+            }
+            else
+            {
+              RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id, msg->position);
+            }
+          });
 
   auto get_present_position =
-    [this](
-    const std::shared_ptr<GetPosition::Request> request,
-    std::shared_ptr<GetPosition::Response> response) -> void
-    {
-      // Read Present Position (length : 4 bytes) and Convert uint32 -> int32
-      // When reading 2 byte data from AX / MX(1.0), use read2ByteTxRx() instead.
-      dxl_comm_result = packetHandler->read4ByteTxRx(
+      [this](
+          const std::shared_ptr<GetPosition::Request> request,
+          std::shared_ptr<GetPosition::Response> response) -> void
+  {
+    // Read Present Position (length : 4 bytes) and Convert uint32 -> int32
+    // When reading 2 byte data from AX / MX(1.0), use read2ByteTxRx() instead.
+    dxl_comm_result = packetHandler->read4ByteTxRx(
         portHandler,
-        (uint8_t) request->id,
+        (uint8_t)request->id,
         ADDR_PRESENT_POSITION,
         reinterpret_cast<uint32_t *>(&present_position),
-        &dxl_error
-      );
+        &dxl_error);
 
-      RCLCPP_INFO(
+    RCLCPP_INFO(
         this->get_logger(),
         "Get [ID: %d] [Present Position: %d]",
         request->id,
-        present_position
-      );
+        present_position);
 
-      response->position = present_position;
-    };
+    response->position = present_position;
+  };
 
   get_position_server_ = create_service<GetPosition>("get_position", get_present_position);
 }
@@ -152,67 +192,75 @@ ReadWriteNode::~ReadWriteNode()
 void setupDynamixel(uint8_t dxl_id)
 {
 
-
-    // Turn LED ON
+  // Turn LED ON
   dxl_comm_result = packetHandler->write1ByteTxRx(
-    portHandler,
-    dxl_id,
-    25,
-    1,
-    &dxl_error
-  );
+      portHandler,
+      dxl_id,
+      25,
+      1,
+      &dxl_error);
 
   // Use Position Control Mode
   dxl_comm_result = packetHandler->write1ByteTxRx(
-    portHandler,
-    dxl_id,
-    ADDR_OPERATING_MODE,
-    3,
-    &dxl_error
-  );
+      portHandler,
+      dxl_id,
+      ADDR_OPERATING_MODE,
+      3,
+      &dxl_error);
 
-  if (dxl_comm_result != COMM_SUCCESS) {
+  if (dxl_comm_result != COMM_SUCCESS)
+  {
     RCLCPP_ERROR(rclcpp::get_logger("read_write_node"), "Failed to set Position Control Mode.");
-  } else {
+  }
+  else
+  {
     RCLCPP_INFO(rclcpp::get_logger("read_write_node"), "Succeeded to set Position Control Mode.");
   }
 
   // Enable Torque of DYNAMIXEL
   dxl_comm_result = packetHandler->write1ByteTxRx(
-    portHandler,
-    dxl_id,
-    ADDR_TORQUE_ENABLE,
-    1,
-    &dxl_error
-  );
+      portHandler,
+      dxl_id,
+      ADDR_TORQUE_ENABLE,
+      1,
+      &dxl_error);
 
-  if (dxl_comm_result != COMM_SUCCESS) {
+  if (dxl_comm_result != COMM_SUCCESS)
+  {
     RCLCPP_ERROR(rclcpp::get_logger("read_write_node"), "Failed to enable torque.");
-  } else {
+  }
+  else
+  {
     RCLCPP_INFO(rclcpp::get_logger("read_write_node"), "Succeeded to enable torque.");
   }
 }
 
-int main(int argc, char * argv[])
+int main(int argc, char *argv[])
 {
   portHandler = dynamixel::PortHandler::getPortHandler(DEVICE_NAME);
   packetHandler = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
 
   // Open Serial Port
   dxl_comm_result = portHandler->openPort();
-  if (dxl_comm_result == false) {
+  if (dxl_comm_result == false)
+  {
     RCLCPP_ERROR(rclcpp::get_logger("read_write_node"), "Failed to open the port!");
     return -1;
-  } else {
+  }
+  else
+  {
     RCLCPP_INFO(rclcpp::get_logger("read_write_node"), "Succeeded to open the port.");
   }
 
   // Set the baudrate of the serial port (use DYNAMIXEL Baudrate)
   dxl_comm_result = portHandler->setBaudRate(BAUDRATE);
-  if (dxl_comm_result == false) {
+  if (dxl_comm_result == false)
+  {
     RCLCPP_ERROR(rclcpp::get_logger("read_write_node"), "Failed to set the baudrate!");
     return -1;
-  } else {
+  }
+  else
+  {
     RCLCPP_INFO(rclcpp::get_logger("read_write_node"), "Succeeded to set the baudrate.");
   }
 
@@ -226,13 +274,11 @@ int main(int argc, char * argv[])
 
   // Disable Torque of DYNAMIXEL
   packetHandler->write1ByteTxRx(
-    portHandler,
-    BROADCAST_ID,
-    ADDR_TORQUE_ENABLE,
-    0,
-    &dxl_error
-  );
+      portHandler,
+      BROADCAST_ID,
+      ADDR_TORQUE_ENABLE,
+      0,
+      &dxl_error);
 
   return 0;
 }
-
