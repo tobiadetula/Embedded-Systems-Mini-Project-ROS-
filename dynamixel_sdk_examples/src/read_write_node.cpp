@@ -80,6 +80,7 @@ double y_initial = 0.0; // Example initial y-coordinate
 // Variables for angles to feed into the two motors
 double theta1 = 0.0; // Angle for the first motor
 double theta2 = 0.0; // Angle for the second motor
+double anglethreshold = 300.0; 
 
 int dxl_comm_result = COMM_TX_FAIL;
 int dxl_comm_result1 = COMM_TX_FAIL;
@@ -112,7 +113,7 @@ ReadWriteNode::ReadWriteNode()
                                                                                              // When writing 2 byte data to AX / MX(1.0), use write2ByteTxRx() instead.
             x_initial = (double)msg->id;
             y_initial = (double)msg->position;
-            InverseKinematics ik(r1, r2, r3);
+            InverseKinematics ik(r1, r2, r3, anglethreshold);
             std::vector<double> endEffectorPosition = {x_initial, y_initial};
             try
             {

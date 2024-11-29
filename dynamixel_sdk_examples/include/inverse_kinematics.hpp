@@ -6,12 +6,11 @@
 #include <cmath>
 #include <functional>
 #include <stdexcept>
-
-
+#include <algorithm> // For std::clamp
 
 class InverseKinematics {
 public:
-    InverseKinematics(double r1, double r2, double r3);
+    InverseKinematics(double r1, double r2, double r3, double angle_threshold = 300.0);
     ~InverseKinematics();
 
     // Method to calculate joint angles from end-effector position
@@ -22,6 +21,7 @@ private:
     double linkLength2;
     double linkLength3;
     double D;
+    double angleThreshold;
 
     // Helper methods for calculations
     double calculateTheta1(double x, double y, double initial_guess_deg);
@@ -32,8 +32,8 @@ private:
     void normalizeDimensions();
 };
 
-InverseKinematics::InverseKinematics(double r1, double r2, double r3) 
-    : linkLength1(r1), linkLength2(r2), linkLength3(r3) {
+InverseKinematics::InverseKinematics(double r1, double r2, double r3, double angle_threshold) 
+    : linkLength1(r1), linkLength2(r2), linkLength3(r3), angleThreshold(angle_threshold) {
     normalizeDimensions();
 }
 
@@ -51,8 +51,8 @@ std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<do
     double y = endEffectorPosition[1] / D;
 
     // Set initial guesses in degrees (e.g., 45 degrees as a safe starting point)
-    double initial_guess_theta1_deg = 90.0;
-    double initial_guess_theta2_deg = 90.0;
+    double initial_guess_theta1_deg = 240.0;
+    double initial_guess_theta2_deg = 220.0;
 
     double theta1 = calculateTheta1(x, y, initial_guess_theta1_deg);
     double theta2 = calculateTheta2(x, y, initial_guess_theta2_deg);
@@ -60,6 +60,10 @@ std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<do
     // Convert radians to degrees
     theta1 = theta1 * (180.0 / M_PI);
     theta2 = theta2 * (180.0 / M_PI);
+
+    // Clamp the angles within the range [0, angleThreshold] degrees
+    theta1 = std::clamp(theta1, 0.0, angleThreshold);
+    theta2 = std::clamp(theta2, 0.0, angleThreshold);
 
     return {theta1, theta2};
 }
