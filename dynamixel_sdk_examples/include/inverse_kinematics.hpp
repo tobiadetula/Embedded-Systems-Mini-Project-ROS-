@@ -2,6 +2,8 @@
 #define INVERSE_KINEMATICS_HPP
 
 #include <vector>
+#include <cmath>
+#include <functional>
 
 class InverseKinematics {
 public:
@@ -53,13 +55,39 @@ std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<do
 }
 
 double InverseKinematics::calculateTheta1(double x, double y) {
-    // Implement the calculation for theta1
-    return 0.0; // Placeholder
+    auto equation1 = [x, y, this](double theta) {
+        return pow(x - linkLength1 * cos(theta) + linkLength3, 2) +
+               pow(y - linkLength1 * sin(theta), 2) -
+               pow(linkLength2, 2);
+    };
+
+    double initial_guess = 0.5; // Initial guess for theta1
+    return solveNewtonRaphson(equation1, initial_guess);
 }
 
 double InverseKinematics::calculateTheta2(double x, double y) {
-    // Implement the calculation for theta2
-    return 0.0; // Placeholder
+    auto equation2 = [x, y, this](double theta) {
+        return pow(x - linkLength1 * cos(theta) - linkLength3, 2) +
+               pow(y - linkLength1 * sin(theta), 2) -
+               pow(linkLength2, 2);
+    };
+
+    double initial_guess = 0.5; // Initial guess for theta2
+    return solveNewtonRaphson(equation2, initial_guess);
+}
+
+double InverseKinematics::solveNewtonRaphson(std::function<double(double)> func, double initial_guess, double tolerance, int max_iter) {
+    double x = initial_guess;
+    for (int i = 0; i < max_iter; i++) {
+        double fx = func(x);
+        double dfx = (func(x + tolerance) - func(x - tolerance)) / (2 * tolerance);
+        double x_next = x - fx / dfx;
+        if (fabs(x_next - x) < tolerance) {
+            return x_next;
+        }
+        x = x_next;
+    }
+    throw std::runtime_error("Newton-Raphson did not converge!");
 };
 
 #endif // INVERSE_KINEMATICS_HPP
