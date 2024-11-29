@@ -49,3 +49,24 @@ qtcreator-*
 
 # Catkin custom files
 CATKIN_IGNORE
+
+
+# Dynamixel SDK
+dynamixel_sdk/
+dynamixel_sdk/.build/
+dynamixel_sdk/.settings/
+dynamixel_sdk/.project
+dynamixel_sdk/.cproject
+dynamixel_sdk/.doxygen/
+
+# Dynamixel SDK custom interfaces
+dynamixel_sdk_custom_interfaces/
+dynamixel_sdk_custom_interfaces/.build/
+dynamixel_sdk_custom_interfaces/.settings/
+dynamixel_sdk_custom_interfaces/.project
+dynamixel_sdk_custom_interfaces/.cproject
+dynamixel_sdk_custom_interfaces/.doxygen/
+
+
+log/
+install/
