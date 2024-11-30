@@ -81,11 +81,14 @@ std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<do
 std::vector<double>  InverseKinematics::calculateTheta(double x, double y)
 {
 
+    double theta1;
+    double theta2;
+
     // Calculate theta2
     double cosTheta2 = (pow(x, 2) + pow(y, 2) - pow(linkLength1, 2) - pow(linkLength2, 2)) / (2 * linkLength1 * linkLength2);
     if (cosTheta2 < -1.0 || cosTheta2 > 1.0) {
         std::cerr << "Point out of reach!\n";
-        return;
+        return {300.0, 300.0};
     }
     theta2 = acos(cosTheta2);
 

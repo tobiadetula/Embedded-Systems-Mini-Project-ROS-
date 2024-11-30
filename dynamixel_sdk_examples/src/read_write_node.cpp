@@ -112,7 +112,7 @@ ReadWriteNode::ReadWriteNode()
 
             if (msg->id == 1)
             {
-                NumberCoordinatesProvider numberProvider(3); // Assuming max_grid_size is 10
+                NumberCoordinatesProvider numberProvider(4); // Assuming max_grid_size is 10
                 std::vector<std::pair<double, double>> coordinates = numberProvider.getNumberCoordinates(msg->position);
                 RCLCPP_INFO(this->get_logger(), "Writing number: %d", msg->position);
                 for (const auto &coordinate : coordinates)
@@ -134,17 +134,7 @@ ReadWriteNode::ReadWriteNode()
                 std::cerr << e.what() << std::endl;
               }
 
-                // Ensure theta1 and theta2 are within the range [0, 300]
-                if (theta1 < 0)
-                {
-                theta1 = 300 + theta1; // Convert negative angle to positive equivalent
-                }
-                if (theta2 < 0)
-                {
-                theta2 = 300 + theta2; // Convert negative angle to positive equivalent
-                }
-
-                // Convert angles to motor positions
+               // Convert angles to motor positions
                 theta1 = (uint32_t)std::round(theta1 * 1023 / 300);
                 theta2 = (uint32_t)std::round(theta2 * 1023 / 300);
               std::cout << "Converted Theta1: " << theta1 << ", Converted Theta2: " << theta2 << std::endl;
