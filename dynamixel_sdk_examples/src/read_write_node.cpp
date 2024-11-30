@@ -112,7 +112,7 @@ ReadWriteNode::ReadWriteNode()
 
             if (msg->id == 1)
             {
-                NumberCoordinatesProvider numberProvider(4); // Assuming max_grid_size is 10
+                NumberCoordinatesProvider numberProvider(12); // Assuming max_grid_size is 10
                 std::vector<std::pair<double, double>> coordinates = numberProvider.getNumberCoordinates(msg->position);
                 RCLCPP_INFO(this->get_logger(), "Writing number: %d", msg->position);
                 for (const auto &coordinate : coordinates)

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <utility>
+#include <cmath>
 
 class NumberCoordinatesProvider {
 public:
@@ -12,6 +13,7 @@ public:
 
 private:
     int max_grid_size;
+    void addSmoothCurve(std::vector<std::pair<double, double>>& coordinates, double x1, double y1, double x2, double y2, int segments) const;
 };
 
 /**
@@ -39,7 +41,10 @@ std::vector<std::pair<double, double>> NumberCoordinatesProvider::getNumberCoord
 
     switch (number) {
         case 0:
-            coordinates = {{1, 1}, {2, 1}, {2, 2}, {1, 2}, {1, 1}};
+            addSmoothCurve(coordinates, 1, 1, 2, 1, 10);
+            addSmoothCurve(coordinates, 2, 1, 2, 2, 10);
+            addSmoothCurve(coordinates, 2, 2, 1, 2, 10);
+            addSmoothCurve(coordinates, 1, 2, 1, 1, 10);
             break;
         case 1:
             coordinates = {{2, 1}, {2, 3}};
@@ -57,19 +62,30 @@ std::vector<std::pair<double, double>> NumberCoordinatesProvider::getNumberCoord
             coordinates = {{2, 3}, {1, 3}, {1, 2}, {2, 2}, {2, 1}, {1, 1}};
             break;
         case 6:
-            coordinates = {{2, 3}, {1, 3}, {1, 1}, {2, 1}, {2, 2}, {1, 2}};
+            addSmoothCurve(coordinates, 2, 3, 1, 3, 10);
+            addSmoothCurve(coordinates, 1, 3, 1, 1, 10);
+            addSmoothCurve(coordinates, 1, 1, 2, 1, 10);
+            addSmoothCurve(coordinates, 2, 1, 2, 2, 10);
+            addSmoothCurve(coordinates, 2, 2, 1, 2, 10);
             break;
         case 7:
             coordinates = {{1, 3}, {2, 3}, {2, 2}, {2, 1}};
             break;
         case 8:
-            coordinates = {{1, 1}, {2, 1}, {2, 3}, {1, 3}, {1, 1}, {1, 2}, {2, 2}};
+            addSmoothCurve(coordinates, 1, 1, 2, 1, 10);
+            addSmoothCurve(coordinates, 2, 1, 2, 3, 10);
+            addSmoothCurve(coordinates, 2, 3, 1, 3, 10);
+            addSmoothCurve(coordinates, 1, 3, 1, 1, 10);
+            addSmoothCurve(coordinates, 1, 2, 2, 2, 10);
             break;
         case 9:
-            coordinates = {{2, 1}, {1, 1}, {1, 3}, {2, 3}, {2, 2}, {1, 2}};
+            addSmoothCurve(coordinates, 2, 1, 1, 1, 10);
+            addSmoothCurve(coordinates, 1, 1, 1, 3, 10);
+            addSmoothCurve(coordinates, 1, 3, 2, 3, 10);
+            addSmoothCurve(coordinates, 2, 3, 2, 2, 10);
+            addSmoothCurve(coordinates, 2, 2, 1, 2, 10);
             break;
         default:
-        coordinates = {{1, 1}, {max_grid_size, max_grid_size}};
             return {};
     }
 
@@ -80,6 +96,25 @@ std::vector<std::pair<double, double>> NumberCoordinatesProvider::getNumberCoord
     }
 
     return scaled_coordinates;
+}
+
+/**
+ * @brief Add smooth curve points between two coordinates.
+ * 
+ * @param coordinates The vector to add the points to.
+ * @param x1 The starting x coordinate.
+ * @param y1 The starting y coordinate.
+ * @param x2 The ending x coordinate.
+ * @param y2 The ending y coordinate.
+ * @param segments The number of segments to divide the curve into.
+ */
+void NumberCoordinatesProvider::addSmoothCurve(std::vector<std::pair<double, double>>& coordinates, double x1, double y1, double x2, double y2, int segments) const {
+    for (int i = 0; i <= segments; ++i) {
+        double t = static_cast<double>(i) / segments;
+        double x = x1 + t * (x2 - x1);
+        double y = y1 + t * (y2 - y1);
+        coordinates.push_back({x, y});
+    }
 }
 
 /**
