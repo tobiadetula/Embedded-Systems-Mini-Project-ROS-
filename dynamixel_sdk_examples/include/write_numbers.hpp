@@ -33,30 +33,53 @@ NumberCoordinatesProvider::NumberCoordinatesProvider(int max_grid_size) : max_gr
  *         If the number is not in the range 0-9, an empty vector is returned.
  */
 std::vector<std::pair<double, double>> NumberCoordinatesProvider::getNumberCoordinates(int number) const {
+    std::vector<std::pair<double, double>> coordinates;
+    std::vector<std::pair<double, double>> scaled_coordinates;
+    double scale_factor = max_grid_size / 3.0; // Assuming the grid size is 3x3
+
     switch (number) {
         case 0:
-            return {{1, 1}, {2, 1}, {2, 2}, {1, 2}, {1, 1}};
+            coordinates = {{1, 1}, {2, 1}, {2, 2}, {1, 2}, {1, 1}};
+            break;
         case 1:
-            return {{2, 1}, {2, 3}};
+            coordinates = {{2, 1}, {2, 3}};
+            break;
         case 2:
-            return {{1, 3}, {2, 3}, {2, 2}, {1, 2}, {1, 1}, {2, 1}};
+            coordinates = {{1, 3}, {2, 3}, {2, 2}, {1, 2}, {1, 1}, {2, 1}};
+            break;
         case 3:
-            return {{1, 3}, {2, 3}, {2, 2}, {1, 2}, {2, 2}, {2, 1}, {1, 1}};
+            coordinates = {{1, 3}, {2, 3}, {2, 2}, {1, 2}, {2, 2}, {2, 1}, {1, 1}};
+            break;
         case 4:
-            return {{1, 3}, {1, 2}, {2, 2}, {2, 3}, {2, 1}};
+            coordinates = {{1, 3}, {1, 2}, {2, 2}, {2, 3}, {2, 1}};
+            break;
         case 5:
-            return {{2, 3}, {1, 3}, {1, 2}, {2, 2}, {2, 1}, {1, 1}};
+            coordinates = {{2, 3}, {1, 3}, {1, 2}, {2, 2}, {2, 1}, {1, 1}};
+            break;
         case 6:
-            return {{2, 3}, {1, 3}, {1, 1}, {2, 1}, {2, 2}, {1, 2}};
+            coordinates = {{2, 3}, {1, 3}, {1, 1}, {2, 1}, {2, 2}, {1, 2}};
+            break;
         case 7:
-            return {{1, 3}, {2, 3}, {2, 2}, {2, 1}};
+            coordinates = {{1, 3}, {2, 3}, {2, 2}, {2, 1}};
+            break;
         case 8:
-            return {{1, 1}, {2, 1}, {2, 3}, {1, 3}, {1, 1}, {1, 2}, {2, 2}};
+            coordinates = {{1, 1}, {2, 1}, {2, 3}, {1, 3}, {1, 1}, {1, 2}, {2, 2}};
+            break;
         case 9:
-            return {{2, 1}, {1, 1}, {1, 3}, {2, 3}, {2, 2}, {1, 2}};
+            coordinates = {{2, 1}, {1, 1}, {1, 3}, {2, 3}, {2, 2}, {1, 2}};
+            break;
         default:
+        coordinates = {{1, 1}, {max_grid_size, max_grid_size}};
             return {};
     }
+
+    for (auto& coord : coordinates) {
+        double x = coord.first * scale_factor;
+        double y = coord.second * scale_factor;
+        scaled_coordinates.push_back({x, y});
+    }
+
+    return scaled_coordinates;
 }
 
 /**
