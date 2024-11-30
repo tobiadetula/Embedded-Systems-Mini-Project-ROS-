@@ -112,8 +112,8 @@ ReadWriteNode::ReadWriteNode()
 
             if (msg->id == 1)
             {
-              WriteNumbers wn;
-              std::vector<std::pair<double, double>> coordinates = wn.getCoordinatesForNumber(msg->position);
+              NumberWriter numberWriter(10); // Assuming max_grid_size is 10
+              std::vector<std::pair<double, double>> coordinates = numberWriter.getNumberCoordinates(msg->position);
               RCLCPP_INFO(this->get_logger(), "Writing number: %d", msg->position);
               for (const auto &coordinate : coordinates)
               {
@@ -132,6 +132,40 @@ ReadWriteNode::ReadWriteNode()
               {
                 std::cerr << e.what() << std::endl;
               }
+
+              theta1 = (uint32_t)std::round(theta1 * 1023 / 300);
+              theta2 = (uint32_t)std::round(theta2 * 1023 / 300);
+              std::cout << "Converted Theta1: " << theta1 << ", Converted Theta2: " << theta2 << std::endl;
+              dxl_comm_result =
+                packetHandler->write4ByteTxRx(
+                  portHandler,
+                  DEVICE_ID_1,
+                  ADDR_GOAL_POSITION,
+                  theta1,
+                  &dxl_error);
+
+              dxl_comm_result1 =
+                packetHandler->write4ByteTxRx(
+                  portHandler,
+                  DEVICE_ID_2,
+                  ADDR_GOAL_POSITION,
+                  theta2,
+                  &dxl_error);
+
+              if (dxl_comm_result != COMM_SUCCESS)
+              {
+                RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
+              }
+              else if (dxl_error != 0)
+              {
+                RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
+              }
+              else
+              {
+                RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id, msg->position);
+              }
+              }
+            }
 
               theta1 = (uint32_t)std::round(theta1 * 1023 / 300);
               theta2 = (uint32_t)std::round(theta2 * 1023 / 300);
