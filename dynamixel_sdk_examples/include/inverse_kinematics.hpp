@@ -32,25 +32,22 @@ private:
 InverseKinematics::InverseKinematics(double r1, double r2)
     : linkLength1(r1), linkLength2(r2)
 {
-    normalizeDimensions();
 }
 
 InverseKinematics::~InverseKinematics() {}
 
 void InverseKinematics::normalizeDimensions()
 {
-    D = (linkLength1 + linkLength2) / 2.0;
-    linkLength1 /= D;
-    linkLength2 /= D;
+    // This method is now empty as dimension normalization is removed
 }
 
 std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<double> &endEffectorPosition)
 {
-    double x = endEffectorPosition[0] / D;
-    double y = endEffectorPosition[1] / D;
+    // double x = endEffectorPosition[0] / D;
+    // double y = endEffectorPosition[1] / D;
 
-    // double x = endEffectorPosition[0];
-    // double y = endEffectorPosition[1];
+    double x = endEffectorPosition[0];
+    double y = endEffectorPosition[1];
 
     // Set initial guesses dynamically or adjust as needed
     // double initial_guess_theta1_deg = 90.0; // Adjust if necessary
@@ -88,6 +85,8 @@ std::vector<double>  InverseKinematics::calculateTheta(double x, double y)
 
     theta2 = acos((pow(x, 2) + pow(y, 2) - pow(linkLength1, 2) - pow(linkLength2, 2)) / (2 * linkLength1 * linkLength2));
     theta1 = atan2(y, x) - atan2(linkLength2 * sin(theta2), linkLength1 + linkLength2 * cos(theta2));
+    theta1 = theta1 * 180.0 / M_PI;
+    theta2 = theta2 * 180.0 / M_PI;
 
     return {theta1, theta2};    
 };
