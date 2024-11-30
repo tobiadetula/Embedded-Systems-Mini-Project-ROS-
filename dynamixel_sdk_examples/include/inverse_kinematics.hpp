@@ -11,7 +11,7 @@
 class InverseKinematics
 {
 public:
-    InverseKinematics(double r1, double r2, double r3, double angle_threshold = 300.0);
+    InverseKinematics(double r1, double r2);
     ~InverseKinematics();
 
     // Method to calculate joint angles from end-effector position
@@ -20,9 +20,10 @@ public:
 private:
     double linkLength1;
     double linkLength2;
+    double D;
     // Helper methods for calculations
-    double calculateTheta1(double x, double y);
-    double calculateTheta2(double x, double y, double initial_guess_deg);
+    std::vector<double> calculateTheta(double x, double y);
+
 
     // Method to normalize dimensions
     void normalizeDimensions();
