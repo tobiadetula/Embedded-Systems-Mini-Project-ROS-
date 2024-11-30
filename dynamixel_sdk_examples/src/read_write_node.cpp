@@ -70,9 +70,6 @@ double r1 = 7.5; // Initial value for r1
 // Distance between the end-effector and first joint
 double r2 = 6.5; // Initial value for r2
 
-// Distance between the first and second motors
-double r3 = 12.5 / 2; // Initial value for r3
-
 // Initial x and y coordinates of the motor
 double x_initial = 0.0; // Example initial x-coordinate
 double y_initial = 0.0; // Example initial y-coordinate
@@ -113,7 +110,7 @@ ReadWriteNode::ReadWriteNode()
             // When writing 2 byte data to AX / MX(1.0), use write2ByteTxRx() instead.
             x_initial = (double)msg->id;
             y_initial = (double)msg->position;
-            InverseKinematics ik(r1, r2, r3, anglethreshold);
+            InverseKinematics ik(r1, r2);
             std::vector<double> endEffectorPosition = {x_initial, y_initial};
             try
             {
