@@ -2,20 +2,24 @@
 #define WRITE_NUMBERS_HPP
 
 #include <vector>
-#include "inverse_kinematics.hpp"
+#include <utility>
 
-class NumberWriter {
+class NumberCoordinatesProvider {
 public:
-    NumberWriter(int max_grid_size);
-    void writeNumber(int number);
+    NumberCoordinatesProvider(int max_grid_size);
+    std::vector<std::pair<double, double>> getNumberCoordinates(int number) const;
+    int getMaxGridSize() const;
 
 private:
     int max_grid_size;
-    InverseKinematics ik;
-
-    std::vector<std::pair<double, double>> getNumberCoordinates(int number);
-    void moveToCoordinates(const std::vector<std::pair<double, double>>& coordinates);
 };
+
+/**
+ * @brief Constructor for NumberCoordinatesProvider.
+ * 
+ * @param max_grid_size The maximum size of the grid within which numbers can be written.
+ */
+NumberCoordinatesProvider::NumberCoordinatesProvider(int max_grid_size) : max_grid_size(max_grid_size) {}
 
 /**
  * @brief Get the coordinates for drawing a given number.
@@ -28,7 +32,7 @@ private:
  * @return std::vector<std::pair<double, double>> A vector of coordinate pairs for drawing the number.
  *         If the number is not in the range 0-9, an empty vector is returned.
  */
-std::vector<std::pair<double, double>> NumberWriter::getNumberCoordinates(int number) {
+std::vector<std::pair<double, double>> NumberCoordinatesProvider::getNumberCoordinates(int number) const {
     switch (number) {
         case 0:
             return {{1, 1}, {2, 1}, {2, 2}, {1, 2}, {1, 1}};
@@ -53,6 +57,15 @@ std::vector<std::pair<double, double>> NumberWriter::getNumberCoordinates(int nu
         default:
             return {};
     }
+}
+
+/**
+ * @brief Get the maximum grid size.
+ * 
+ * @return int The maximum grid size.
+ */
+int NumberCoordinatesProvider::getMaxGridSize() const {
+    return max_grid_size;
 }
 
 #endif // WRITE_NUMBERS_HPP

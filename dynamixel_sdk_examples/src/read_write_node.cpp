@@ -112,15 +112,15 @@ ReadWriteNode::ReadWriteNode()
 
             if (msg->id == 1)
             {
-              NumberWriter numberWriter(10); // Assuming max_grid_size is 10
-              std::vector<std::pair<double, double>> coordinates = numberWriter.getNumberCoordinates(msg->position);
-              RCLCPP_INFO(this->get_logger(), "Writing number: %d", msg->position);
-              for (const auto &coordinate : coordinates)
-              {
-              x_initial = coordinate.first;
-              y_initial = coordinate.second;
-              InverseKinematics ik(r1, r2);
-              std::vector<double> endEffectorPosition = {x_initial, y_initial};
+                NumberCoordinatesProvider numberProvider(10); // Assuming max_grid_size is 10
+                std::vector<std::pair<double, double>> coordinates = numberProvider.getNumberCoordinates(msg->position);
+                RCLCPP_INFO(this->get_logger(), "Writing number: %d", msg->position);
+                for (const auto &coordinate : coordinates)
+                {
+                x_initial = coordinate.first;
+                y_initial = coordinate.second;
+                InverseKinematics ik(r1, r2);
+                std::vector<double> endEffectorPosition = {x_initial, y_initial};
               try
               {
                 std::vector<double> jointAngles = ik.calculateJointAngles(endEffectorPosition);
@@ -165,95 +165,6 @@ ReadWriteNode::ReadWriteNode()
                 RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id, msg->position);
               }
               }
-            }
-
-              theta1 = (uint32_t)std::round(theta1 * 1023 / 300);
-              theta2 = (uint32_t)std::round(theta2 * 1023 / 300);
-              std::cout << "Converted Theta1: " << theta1 << ", Converted Theta2: " << theta2 << std::endl;
-              dxl_comm_result =
-                packetHandler->write4ByteTxRx(
-                  portHandler,
-                  DEVICE_ID_1,
-                  ADDR_GOAL_POSITION,
-                  theta1,
-                  &dxl_error);
-
-              dxl_comm_result1 =
-                packetHandler->write4ByteTxRx(
-                  portHandler,
-                  DEVICE_ID_2,
-                  ADDR_GOAL_POSITION,
-                  theta2,
-                  &dxl_error);
-
-              if (dxl_comm_result != COMM_SUCCESS)
-              {
-                RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
-              }
-              else if (dxl_error != 0)
-              {
-                RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
-              }
-              else
-              {
-                RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id, msg->position);
-              }
-              }
-            }
-            x_initial = (double)msg->id;
-            y_initial = (double)msg->position;
-            InverseKinematics ik(r1, r2);
-            std::vector<double> endEffectorPosition = {x_initial, y_initial};
-            try
-            {
-              std::vector<double> jointAngles = ik.calculateJointAngles(endEffectorPosition);
-              theta1 = jointAngles[0];
-              theta2 = jointAngles[1];
-              std::cout << "Theta1: " << theta1 << ", Theta2: " << theta2 << std::endl;
-            }
-            catch (const std::exception &e)
-            {
-              std::cerr << e.what() << std::endl;
-            }
-
-            theta1 = (uint32_t)std::round(theta1 * 1023 / 300);
-            theta2 = (uint32_t)std::round(theta2 * 1023 / 300);
-            std::cout << "Converted Theta1: " << theta1 << ", Converted Theta2: " << theta2 << std::endl;
-            dxl_comm_result =
-                packetHandler->write4ByteTxRx(
-                    portHandler,
-                    DEVICE_ID_1,
-                    ADDR_GOAL_POSITION,
-                    theta1,
-                    &dxl_error);
-
-            // Disable Torque of DYNAMIXEL
-            // packetHandler->write1ByteTxRx(
-            //     portHandler,
-            //     BROADCAST_ID,
-            //     ADDR_TORQUE_ENABLE,
-            //     0,
-            //     &dxl_error);
-
-            dxl_comm_result1 =
-                packetHandler->write4ByteTxRx(
-                    portHandler,
-                    DEVICE_ID_2,
-                    ADDR_GOAL_POSITION,
-                    theta2,
-                    &dxl_error);
-
-            if (dxl_comm_result != COMM_SUCCESS)
-            {
-              RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
-            }
-            else if (dxl_error != 0)
-            {
-              RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
-            }
-            else
-            {
-              RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id, msg->position);
             }
           });
 
