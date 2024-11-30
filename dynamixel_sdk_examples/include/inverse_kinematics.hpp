@@ -80,13 +80,29 @@ std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<do
 
 std::vector<double>  InverseKinematics::calculateTheta(double x, double y)
 {
-    double theta2;
-    double theta1;
 
-    theta2 = acos((pow(x, 2) + pow(y, 2) - pow(linkLength1, 2) - pow(linkLength2, 2)) / (2 * linkLength1 * linkLength2));
+    // Calculate theta2
+    double cosTheta2 = (pow(x, 2) + pow(y, 2) - pow(linkLength1, 2) - pow(linkLength2, 2)) / (2 * linkLength1 * linkLength2);
+    if (cosTheta2 < -1.0 || cosTheta2 > 1.0) {
+        std::cerr << "Point out of reach!\n";
+        return;
+    }
+    theta2 = acos(cosTheta2);
+
+    // Calculate theta1
     theta1 = atan2(y, x) - atan2(linkLength2 * sin(theta2), linkLength1 + linkLength2 * cos(theta2));
+
+    // Convert to degrees
     theta1 = theta1 * 180.0 / M_PI;
     theta2 = theta2 * 180.0 / M_PI;
+
+    // Ensure angles are within 0 to 300 degrees
+    if (theta1 < 0) theta1 += 360;
+    if (theta2 < 0) theta2 += 360;
+
+    theta1 = fmod(theta1, 300); // Wrap within 0 to 300
+    theta2 = fmod(theta2, 300);
+
 
     return {theta1, theta2};    
 };
