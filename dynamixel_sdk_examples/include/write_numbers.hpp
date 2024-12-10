@@ -37,17 +37,18 @@ NumberCoordinatesProvider::NumberCoordinatesProvider(int max_grid_size) : max_gr
 std::vector<std::pair<double, double>> NumberCoordinatesProvider::getNumberCoordinates(int number) const {
     std::vector<std::pair<double, double>> coordinates;
     std::vector<std::pair<double, double>> scaled_coordinates;
-    double scale_factor = max_grid_size / 3.0; // Assuming the grid size is 3x3
+    double scale_factor = max_grid_size; // Assuming the grid size is 3x3
 
     switch (number) {
         case 0:
-            addSmoothCurve(coordinates, 1, 1, 2, 1, 10);
-            addSmoothCurve(coordinates, 2, 1, 2, 2, 10);
-            addSmoothCurve(coordinates, 2, 2, 1, 2, 10);
-            addSmoothCurve(coordinates, 1, 2, 1, 1, 10);
+            coordinates = {
+                {1.800, 1.500}, {1.742, 1.795}, {1.591, 1.976}, {1.405, 1.974}, 
+                {1.255, 1.789}, {1.200, 1.492}, {1.261, 1.198}, {1.414, 1.021}, 
+                {1.600, 1.029}, {1.748, 1.218}
+            };
             break;
         case 1:
-            coordinates = {{2, 1}, {2, 3}};
+            coordinates = {{1, 1}, {1, 2}};
             break;
         case 2:
             coordinates = {{1, 3}, {2, 3}, {2, 2}, {1, 2}, {1, 1}, {2, 1}};
@@ -62,31 +63,29 @@ std::vector<std::pair<double, double>> NumberCoordinatesProvider::getNumberCoord
             coordinates = {{2, 3}, {1, 3}, {1, 2}, {2, 2}, {2, 1}, {1, 1}};
             break;
         case 6:
-            addSmoothCurve(coordinates, 2, 3, 1, 3, 10);
-            addSmoothCurve(coordinates, 1, 3, 1, 1, 10);
-            addSmoothCurve(coordinates, 1, 1, 2, 1, 10);
-            addSmoothCurve(coordinates, 2, 1, 2, 2, 10);
-            addSmoothCurve(coordinates, 2, 2, 1, 2, 10);
+            coordinates = {{2, 3}, {1, 3}, {1, 2}, {2, 2}, {2, 1}, {1, 1}, {1, 2}};
             break;
         case 7:
             coordinates = {{1, 3}, {2, 3}, {2, 2}, {2, 1}};
             break;
         case 8:
-            addSmoothCurve(coordinates, 1, 1, 2, 1, 10);
-            addSmoothCurve(coordinates, 2, 1, 2, 3, 10);
-            addSmoothCurve(coordinates, 2, 3, 1, 3, 10);
-            addSmoothCurve(coordinates, 1, 3, 1, 1, 10);
-            addSmoothCurve(coordinates, 1, 2, 2, 2, 10);
+            coordinates = {{1, 3}, {2, 3}, {2, 2}, {1, 2}, {1, 1}, {2, 1}, {1, 2}, {2, 2}};
             break;
         case 9:
-            addSmoothCurve(coordinates, 2, 1, 1, 1, 10);
-            addSmoothCurve(coordinates, 1, 1, 1, 3, 10);
-            addSmoothCurve(coordinates, 1, 3, 2, 3, 10);
-            addSmoothCurve(coordinates, 2, 3, 2, 2, 10);
-            addSmoothCurve(coordinates, 2, 2, 1, 2, 10);
+            coordinates = {{1, 1}, {2, 1}, {2, 2}, {1, 2}, {1, 3}, {2, 3}, {2, 2}};
+            break;
+        case 10:
+            coordinates = {{1, 1}, {1, 2}, {1, 3}, {1, 4}, {1, 5}, {1, 6}, {1, 7}};
+            break;
+        case 11:
+            coordinates = {{0.5, 0.5}, {1.5, 1.5}, {2.5, 2.5}, {3.5, 3.5}, {4.5, 4.5}, {5.5, 5.5}, {6.5, 6.5}};
+            break;
+        case 12:
+            coordinates = {{1, 1}, {2, 1}, {3, 1}, {4, 1}, {5, 1}, {6, 1}, {7, 1}};
             break;
         default:
             return {};
+            break;
     }
 
     for (auto& coord : coordinates) {

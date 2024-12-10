@@ -66,7 +66,7 @@ uint8_t dxl_error = 0;
 uint32_t goal_position = 0;
 
 // Distance between the motor and first joint
-double r1 = 11; // Initial value for r1
+double r1 = 10.75; // Initial value for r1
 
 // Distance between the end-effector and first joint
 double r2 = 8.5; // Initial value for r2
@@ -112,7 +112,7 @@ ReadWriteNode::ReadWriteNode()
 
             if (msg->id == 1)
             {
-                NumberCoordinatesProvider numberProvider(12); // Assuming max_grid_size is 10
+                NumberCoordinatesProvider numberProvider(5); // Assuming max_grid_size is 10
                 std::vector<std::pair<double, double>> coordinates = numberProvider.getNumberCoordinates(msg->position);
                 RCLCPP_INFO(this->get_logger(), "Writing number: %d", msg->position);
                 for (const auto &coordinate : coordinates)
@@ -133,7 +133,8 @@ ReadWriteNode::ReadWriteNode()
               {
                 std::cerr << e.what() << std::endl;
               }
-
+              // Add a delay between each point
+              // rclcpp::sleep_for(std::chrono::milliseconds(1000)); // Adjust the duration as needed
                // Convert angles to motor positions
                 theta1 = (uint32_t)std::round(theta1 * 1023 / 300);
                 theta2 = (uint32_t)std::round(theta2 * 1023 / 300);
@@ -145,6 +146,8 @@ ReadWriteNode::ReadWriteNode()
                   ADDR_GOAL_POSITION,
                   theta1,
                   &dxl_error);
+                  
+              // rclcpp::sleep_for(std::chrono::milliseconds(500)); // Adjust the duration as needed
 
                 dxl_comm_result1 =
                 packetHandler->write4ByteTxRx(

@@ -67,7 +67,7 @@ std::vector<double> InverseKinematics::calculateJointAngles(const std::vector<do
 
         // Avoid aggressive clamping unless necessary
         // theta1 = 300 - theta1; // Adjust for motor orientation
-        // theta2 = theta2 + 90; // Adjust for motor orientation
+
 
         return {theta1, theta2};
     }
@@ -91,6 +91,8 @@ std::vector<double>  InverseKinematics::calculateTheta(double x, double y)
         return {300.0, 300.0};
     }
     theta2 = acos(cosTheta2);
+            // theta1 = theta1 + 120; // Adjust for motor 
+    // theta2 = theta2 - (M_PI*2/3); // Adjust for motor orientation
 
     // Calculate theta1
     theta1 = atan2(y, x) - atan2(linkLength2 * sin(theta2), linkLength1 + linkLength2 * cos(theta2));
