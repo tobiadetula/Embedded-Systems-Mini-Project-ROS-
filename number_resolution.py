@@ -44,6 +44,7 @@ shape_coords = generate_shape()
 # Compute the joint angles for the shape and validate reachability
 joint_angles = []
 drawable_coords = []
+# Check if the inverse kinematics results in valid angles
 for x, y in shape_coords:
     angles = inverse_kinematics(x, y)
     if angles is not None:
@@ -52,6 +53,11 @@ for x, y in shape_coords:
             JOINT2_LIMITS_RAD[0] <= theta2 <= JOINT2_LIMITS_RAD[1]):
             joint_angles.append(angles)
             drawable_coords.append((x, y))
+        else:
+            print(f"Joint limits exceeded for point ({x}, {y}): theta1={theta1}, theta2={theta2}")
+    else:
+        print(f"Point ({x}, {y}) is unreachable.")
+
 
 # Reconstruct the shape using forward kinematics
 fk_coords = [forward_kinematics(theta1, theta2) for theta1, theta2 in joint_angles]
