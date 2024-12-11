@@ -47,29 +47,53 @@ def get_image_coords(image_path):
     
     return coords
 
-# Function to scale down coordinates if they are out of reach
-def scale_coordinates(x, y):
-    max_reach = L1 + L2  # Maximum reachable distance
-    r = sqrt(x**2 + y**2)
+# Function to scale coordinates proportionally while keeping the closest point in the workspace
+def scale_coordinates_with_offset(coords):
+    # Find the closest point to the origin (this will be our "starting point")
+    min_distance = float('inf')
+    closest_point = None
+    for x, y in coords:
+        distance = sqrt(x**2 + y**2)
+        if distance < min_distance:
+            min_distance = distance
+            closest_point = (x, y)
     
-    if r > max_reach:
-        # Scale down the coordinates proportionally
-        scaling_factor = max_reach / r
-        x = x * scaling_factor
-        y = y * scaling_factor
-    return x, y
+    # Compute the distance from the origin to the closest point
+    offset_x, offset_y = closest_point
+
+    # Apply an offset so that the closest point is at the origin (0, 0)
+    coords_offset = [(x - offset_x, y - offset_y) for x, y in coords]
+
+    # Find the maximum distance after offset
+    max_distance = 0
+    for x, y in coords_offset:
+        distance = sqrt(x**2 + y**2)
+        if distance > max_distance:
+            max_distance = distance
+
+    # If the farthest distance exceeds the max reachable distance, scale down
+    max_reach = L1 + L2  # Maximum reachable distance
+    if max_distance > max_reach:
+        scaling_factor = max_reach / max_distance
+        scaled_coords = [(x * scaling_factor, y * scaling_factor) for x, y in coords_offset]
+    else:
+        scaled_coords = coords_offset  # No scaling needed if all points are within reach
+
+    # Re-add the offset to the scaled coordinates so that the closest point stays within the workspace
+    final_coords = [(x + offset_x, y + offset_y) for x, y in scaled_coords]
+
+    return final_coords
 
 # Function to generate valid coordinates from image based on motor constraints
 def generate_valid_coords_from_image(image_path):
     shape_coords = get_image_coords(image_path)  # Extract coordinates from image
+    
+    # Scale the coordinates with offset and proportional scaling
+    scaled_coords = scale_coordinates_with_offset(shape_coords)
     valid_coords = []
 
     # Check each coordinate to see if it is reachable
-    for x, y in shape_coords:
-        # Scale coordinates if they are out of reach
-        x, y = scale_coordinates(x, y)
-        
-        # Adjust x and y to match your coordinate frame if needed (e.g., scale or translate)
+    for x, y in scaled_coords:
         angles = inverse_kinematics(x, y)
         if angles is not None:
             theta1, theta2 = angles
