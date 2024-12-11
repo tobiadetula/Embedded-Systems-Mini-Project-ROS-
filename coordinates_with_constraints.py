@@ -47,6 +47,18 @@ def get_image_coords(image_path):
     
     return coords
 
+# Function to scale down coordinates if they are out of reach
+def scale_coordinates(x, y):
+    max_reach = L1 + L2  # Maximum reachable distance
+    r = sqrt(x**2 + y**2)
+    
+    if r > max_reach:
+        # Scale down the coordinates proportionally
+        scaling_factor = max_reach / r
+        x = x * scaling_factor
+        y = y * scaling_factor
+    return x, y
+
 # Function to generate valid coordinates from image based on motor constraints
 def generate_valid_coords_from_image(image_path):
     shape_coords = get_image_coords(image_path)  # Extract coordinates from image
@@ -54,6 +66,9 @@ def generate_valid_coords_from_image(image_path):
 
     # Check each coordinate to see if it is reachable
     for x, y in shape_coords:
+        # Scale coordinates if they are out of reach
+        x, y = scale_coordinates(x, y)
+        
         # Adjust x and y to match your coordinate frame if needed (e.g., scale or translate)
         angles = inverse_kinematics(x, y)
         if angles is not None:
