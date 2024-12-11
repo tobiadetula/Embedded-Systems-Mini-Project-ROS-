@@ -75,7 +75,13 @@ std::vector<std::pair<double, double>> NumberCoordinatesProvider::getNumberCoord
             coordinates = {{1, 1}, {2, 1}, {2, 2}, {1, 2}, {1, 3}, {2, 3}, {2, 2}};
             break;
         case 10:
-            coordinates = {{1, 1}, {1, 2}, {1, 3}, {1, 4}, {1, 5}, {1, 6}, {1, 7}};
+            coordinates = {
+                {11.42, 10.26}, 
+                {15.27, 10.26}, 
+                {15.95, 7.93}, 
+                {13.21, 7.52}, 
+                {11.56, 9.85}
+            };
             break;
         case 11:
             coordinates = {{0.5, 0.5}, {1.5, 1.5}, {2.5, 2.5}, {3.5, 3.5}, {4.5, 4.5}, {5.5, 5.5}, {6.5, 6.5}};

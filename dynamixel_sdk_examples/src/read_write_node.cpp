@@ -110,9 +110,8 @@ ReadWriteNode::ReadWriteNode()
             // Write Goal Position (length : 4 bytes)
             // When writing 2 byte data to AX / MX(1.0), use write2ByteTxRx() instead.
 
-            if (msg->id == 1)
-            {
-                NumberCoordinatesProvider numberProvider(5); // Assuming max_grid_size is 10
+
+                NumberCoordinatesProvider numberProvider(msg->id); // Assuming max_grid_size is 10
                 std::vector<std::pair<double, double>> coordinates = numberProvider.getNumberCoordinates(msg->position);
                 RCLCPP_INFO(this->get_logger(), "Writing number: %d", msg->position);
                 for (const auto &coordinate : coordinates)
@@ -173,7 +172,7 @@ ReadWriteNode::ReadWriteNode()
                 RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id, msg->position);
               }
               }
-            }
+            
             
           });
 
