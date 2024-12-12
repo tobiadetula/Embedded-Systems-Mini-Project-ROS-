@@ -66,10 +66,10 @@ uint8_t dxl_error = 0;
 uint32_t goal_position = 0;
 
 // Distance between the motor and first joint
-double r1 = 10.75; // Initial value for r1
+double r2 = 10.75; // Initial value for r1
 
 // Distance between the end-effector and first joint
-double r2 = 8.5; // Initial value for r2
+double r1 = 8.5; // Initial value for r2
 
 // Initial x and y coordinates of the motor
 double x_initial = 0.0; // Example initial x-coordinate
@@ -133,7 +133,54 @@ ReadWriteNode::ReadWriteNode()
                 std::cerr << e.what() << std::endl;
               }
               // Add a delay between each point
-              // rclcpp::sleep_for(std::chrono::milliseconds(1000)); // Adjust the duration as needed
+            rclcpp::sleep_for(std::chrono::milliseconds(1000)); // Adjust the duration as needed
+            // Check if theta1 or theta2 is negative and adjust the motor position accordingly
+            // if (theta1 < 0)
+            // {
+            //   uint32_t present_position1 = 0;
+            //   dxl_comm_result = packetHandler->read4ByteTxRx(
+            //       portHandler,
+            //       DEVICE_ID_1,
+            //       ADDR_PRESENT_POSITION,
+            //       &present_position1,
+            //       &dxl_error);
+
+            //     if (dxl_comm_result == COMM_SUCCESS)
+            //     {
+            //     present_position1 = static_cast<uint32_t>(present_position1 * 300.0 / 1023);
+            //     RCLCPP_INFO(this->get_logger(), "Present Position for DEVICE_ID_1: %d", present_position1);
+            //     theta1 = present_position1 - std::abs(theta1);
+            //     RCLCPP_INFO(this->get_logger(), "Adjusted Theta1: %f", theta1);
+            //     }
+            //     else
+            //     {
+            //     RCLCPP_ERROR(this->get_logger(), "Failed to read present position for DEVICE_ID_1");
+            //     }
+            //   }
+
+            //   if (theta2 < 0)
+            //   {
+            //     uint32_t present_position2 = 0;
+            //     dxl_comm_result1 = packetHandler->read4ByteTxRx(
+            //       portHandler,
+            //       DEVICE_ID_2,
+            //       ADDR_PRESENT_POSITION,
+            //       &present_position2,
+            //       &dxl_error);
+
+            //     if (dxl_comm_result1 == COMM_SUCCESS)
+            //     {
+            //     present_position2 = static_cast<uint32_t>(present_position2 * 300.0 / 1023);
+            //     RCLCPP_INFO(this->get_logger(), "Present Position for DEVICE_ID_2: %d", present_position2);
+            //     theta2 = present_position2 - std::abs(theta2);
+            //     RCLCPP_INFO(this->get_logger(), "Adjusted Theta2: %f", theta2);
+            //     }
+            //     else
+            //     {
+            //     RCLCPP_ERROR(this->get_logger(), "Failed to read present position for DEVICE_ID_2");
+            //     }
+            //   }
+              
                // Convert angles to motor positions
                 theta1 = (uint32_t)std::round(theta1 * 1023 / 300);
                 theta2 = (uint32_t)std::round(theta2 * 1023 / 300);
@@ -146,7 +193,7 @@ ReadWriteNode::ReadWriteNode()
                   theta1,
                   &dxl_error);
                   
-              // rclcpp::sleep_for(std::chrono::milliseconds(500)); // Adjust the duration as needed
+              rclcpp::sleep_for(std::chrono::milliseconds(100)); // Adjust the duration as needed
 
                 dxl_comm_result1 =
                 packetHandler->write4ByteTxRx(
