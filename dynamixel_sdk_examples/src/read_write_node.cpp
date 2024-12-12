@@ -133,7 +133,7 @@ ReadWriteNode::ReadWriteNode()
                 std::cerr << e.what() << std::endl;
               }
               // Add a delay between each point
-            rclcpp::sleep_for(std::chrono::milliseconds(1000)); // Adjust the duration as needed
+            // rclcpp::sleep_for(std::chrono::milliseconds(250)); // Adjust the duration as needed
             // Check if theta1 or theta2 is negative and adjust the motor position accordingly
             // if (theta1 < 0)
             // {
@@ -193,7 +193,7 @@ ReadWriteNode::ReadWriteNode()
                   theta1,
                   &dxl_error);
                   
-              rclcpp::sleep_for(std::chrono::milliseconds(100)); // Adjust the duration as needed
+              // rclcpp::sleep_for(std::chrono::milliseconds(50)); // Adjust the duration as needed
 
                 dxl_comm_result1 =
                 packetHandler->write4ByteTxRx(
@@ -271,6 +271,14 @@ void setupDynamixel(uint8_t dxl_id)
       ADDR_OPERATING_MODE,
       3,
       &dxl_error);
+
+      // Set Torque Limit
+      // dxl_comm_result = packetHandler->write2ByteTxRx(
+      //     portHandler,
+      //     dxl_id,
+      //     34, // Address for Torque Limit
+      //     128, // Torque Limit value
+      //     &dxl_error);
 
   if (dxl_comm_result != COMM_SUCCESS)
   {

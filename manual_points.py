@@ -60,6 +60,22 @@ ax.legend()
 # Variables to store drawn points
 drawn_points = []
 line_segments = []
+# Function to calculate forward kinematics
+def forward_kinematics(theta1, theta2):
+    x = L1 * cos(theta1) + L2 * cos(theta1 + theta2)
+    y = L1 * sin(theta1) + L2 * sin(theta1 + theta2)
+    return x, y
+
+# Function to interpolate the path in joint space
+def interpolate_joint_path(start_angles, end_angles, num_points=50):
+    theta1_points = np.linspace(start_angles[0], end_angles[0], num_points)
+    theta2_points = np.linspace(start_angles[1], end_angles[1], num_points)
+    path = []
+
+    for theta1, theta2 in zip(theta1_points, theta2_points):
+        x, y = forward_kinematics(theta1, theta2)
+        path.append((x, y))
+    return path
 
 # Function to handle clicks and add points
 def on_click(event):
@@ -69,24 +85,34 @@ def on_click(event):
     # Get clicked coordinates
     x, y = event.xdata, event.ydata
     drawn_points.append((x, y))
-    
+
     # Check if the point is reachable
     result = inverse_kinematics(x, y)
     if result is not None:
         theta1, theta2 = result
-        # Print coordinates in terminal with connection line
         print(f"Point: ({x:.2f}, {y:.2f}) -> theta1: {np.degrees(theta1):.2f}, theta2: {np.degrees(theta2):.2f}")
-        
+
         # Draw the point
         ax.plot(x, y, 'go')  # Draw the point as a green dot
 
-        # Draw line from last point to current point
+        # Simulate end-effector movement
         if len(drawn_points) > 1:
             prev_x, prev_y = drawn_points[-2]
-            ax.plot([prev_x, x], [prev_y, y], 'b-', lw=2)  # Connect with a blue line
-        
-        # Redraw the plot
-        fig.canvas.draw_idle()
+            prev_result = inverse_kinematics(prev_x, prev_y)
+
+            if prev_result is not None:
+                prev_theta1, prev_theta2 = prev_result
+                # Interpolate in joint space
+                interpolated_path = interpolate_joint_path((prev_theta1, prev_theta2), (theta1, theta2))
+
+                # Extract path coordinates for plotting
+                path_x, path_y = zip(*interpolated_path)
+
+                # Simulate motor movement
+                for px, py in zip(path_x, path_y):
+                    ax.plot(px, py, 'b.', markersize=2)  # Draw the movement as a blue dot
+                    fig.canvas.draw_idle()
+                    plt.pause(0.01)  # Pause to visualize movement
 
 # Connect the click event to the on_click function
 cid = fig.canvas.mpl_connect('button_press_event', on_click)
